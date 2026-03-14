@@ -1,2 +1,407 @@
-// screens/home/home_screen.dart
-// Placeholder for Home screen
+import 'package:badges/badges.dart' as badges;
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/cart_provider.dart';
+import '../../widgets/product_card.dart';
+import 'home_view_model.dart';
+
+class HomeScreen extends StatefulWidget {
+	const HomeScreen({super.key});
+
+	@override
+	State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+	final TextEditingController _searchController = TextEditingController();
+	bool _initialized = false;
+	final List<String> _banners = const [
+		'https://images.unsplash.com/photo-1512436991641-6745cdb1723f',
+		'https://images.unsplash.com/photo-1523275335684-37898b6baf30',
+		'https://images.unsplash.com/photo-1542293787938-4d273c5ba81c',
+		'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3',
+	];
+
+	final List<_CategoryItem> _categories = const [
+		_CategoryItem(icon: Icons.checkroom, label: 'Fashion'),
+		_CategoryItem(icon: Icons.phone_android, label: 'Phones'),
+		_CategoryItem(icon: Icons.brush, label: 'Beauty'),
+		_CategoryItem(icon: Icons.weekend, label: 'Furniture'),
+		_CategoryItem(icon: Icons.sports_soccer, label: 'Sports'),
+		_CategoryItem(icon: Icons.toys, label: 'Toys'),
+		_CategoryItem(icon: Icons.diamond, label: 'Jewelry'),
+		_CategoryItem(icon: Icons.local_grocery_store, label: 'Groceries'),
+	];
+
+	@override
+	void didChangeDependencies() {
+		super.didChangeDependencies();
+		if (!_initialized) {
+			_initialized = true;
+			Future.microtask(() => context.read<HomeViewModel>().loadInitial());
+		}
+	}
+
+	@override
+	void dispose() {
+		_searchController.dispose();
+		super.dispose();
+	}
+
+	@override
+	Widget build(BuildContext context) {
+		final theme = Theme.of(context);
+		final viewModel = context.watch<HomeViewModel>();
+
+		return Scaffold(
+			body: SafeArea(
+				child: RefreshIndicator(
+					onRefresh: viewModel.refresh,
+					child: NotificationListener<ScrollNotification>(
+						onNotification: (notification) {
+							viewModel.updateScrollOffset(notification.metrics.pixels);
+							if (notification.metrics.pixels >= notification.metrics.maxScrollExtent - 240) {
+								viewModel.loadMore();
+							}
+							return false;
+						},
+						child: CustomScrollView(
+							physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+							slivers: [
+								_buildAppBar(theme, viewModel),
+								SliverPersistentHeader(
+									pinned: true,
+									delegate: _SearchBarDelegate(
+										minExtent: 72,
+										maxExtent: 88,
+										controller: _searchController,
+										onChanged: viewModel.updateSearchQuery,
+									),
+								),
+								SliverToBoxAdapter(child: _buildCarousel(viewModel, theme)),
+								SliverToBoxAdapter(child: _buildCategories(theme)),
+								_buildProducts(viewModel, theme),
+								SliverToBoxAdapter(child: _buildLoadMoreIndicator(viewModel, theme)),
+							],
+						),
+					),
+				),
+			),
+		);
+	}
+
+	SliverAppBar _buildAppBar(ThemeData theme, HomeViewModel viewModel) {
+		final color = theme.colorScheme.primary.withOpacity(viewModel.appBarOpacity);
+		final foreground = viewModel.appBarOpacity > 0.5
+				? theme.colorScheme.onPrimary
+				: theme.colorScheme.onSurface;
+		return SliverAppBar(
+			pinned: true,
+			expandedHeight: 200,
+			backgroundColor: color,
+			elevation: viewModel.appBarOpacity > 0.6 ? 2 : 0,
+			foregroundColor: foreground,
+			title: const Text('TH4 - Nhóm 4'),
+			actions: [
+				Consumer<CartProvider>(
+					builder: (_, cart, __) {
+						return IconButton(
+							onPressed: () {},
+							icon: badges.Badge(
+								showBadge: cart.totalItemTypes > 0,
+								position: badges.BadgePosition.topEnd(top: -4, end: -4),
+								badgeStyle: const badges.BadgeStyle(badgeColor: Colors.red),
+								badgeContent: Text(
+									cart.totalItemTypes.toString(),
+									style: const TextStyle(color: Colors.white, fontSize: 10),
+								),
+								child: const Icon(Icons.shopping_bag_outlined),
+							),
+						);
+					},
+				),
+				const SizedBox(width: 8),
+			],
+			flexibleSpace: FlexibleSpaceBar(
+				background: Container(
+					decoration: BoxDecoration(
+						gradient: LinearGradient(
+							colors: [
+								theme.colorScheme.primary.withOpacity(0.7),
+								theme.colorScheme.primary.withOpacity(0.4),
+								theme.scaffoldBackgroundColor,
+							],
+							begin: Alignment.topCenter,
+							end: Alignment.bottomCenter,
+						),
+					),
+					padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
+					child: Column(
+						crossAxisAlignment: CrossAxisAlignment.start,
+						children: const [
+							Text('Hello, welcome back!',
+									style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
+							SizedBox(height: 8),
+							Text('Find the best deals today.',
+									style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+						],
+					),
+				),
+			),
+		);
+	}
+
+	Widget _buildCarousel(HomeViewModel viewModel, ThemeData theme) {
+		return Column(
+			children: [
+				const SizedBox(height: 12),
+				CarouselSlider.builder(
+					itemCount: _banners.length,
+					itemBuilder: (_, index, __) {
+						return Padding(
+							padding: const EdgeInsets.symmetric(horizontal: 12),
+							child: ClipRRect(
+								borderRadius: BorderRadius.circular(16),
+								child: Stack(
+									fit: StackFit.expand,
+									children: [
+										Image.network(_banners[index], fit: BoxFit.cover),
+										Container(
+											decoration: const BoxDecoration(
+												gradient: LinearGradient(
+													colors: [Colors.black54, Colors.transparent],
+													begin: Alignment.bottomCenter,
+													end: Alignment.topCenter,
+												),
+											),
+										),
+									],
+								),
+							),
+						);
+					},
+					options: CarouselOptions(
+						height: 180,
+						autoPlay: true,
+						viewportFraction: 0.9,
+						enlargeCenterPage: true,
+						onPageChanged: (index, _) => viewModel.updateBannerIndex(index),
+					),
+				),
+				const SizedBox(height: 8),
+				Row(
+					mainAxisAlignment: MainAxisAlignment.center,
+					children: List.generate(_banners.length, (index) {
+						final isActive = index == viewModel.currentBanner;
+						return AnimatedContainer(
+							duration: const Duration(milliseconds: 300),
+							margin: const EdgeInsets.symmetric(horizontal: 4),
+							height: 8,
+							width: isActive ? 22 : 8,
+							decoration: BoxDecoration(
+								color: isActive ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.3),
+								borderRadius: BorderRadius.circular(12),
+							),
+						);
+					}),
+				),
+				const SizedBox(height: 4),
+			],
+		);
+	}
+
+	Widget _buildCategories(ThemeData theme) {
+		return Padding(
+			padding: const EdgeInsets.symmetric(vertical: 12),
+			child: SizedBox(
+				height: 140,
+				child: GridView.builder(
+					padding: const EdgeInsets.symmetric(horizontal: 16),
+					physics: const BouncingScrollPhysics(),
+					scrollDirection: Axis.horizontal,
+					gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+						crossAxisCount: 2,
+						mainAxisSpacing: 12,
+						crossAxisSpacing: 12,
+						childAspectRatio: 1.9,
+					),
+					itemCount: _categories.length,
+					itemBuilder: (_, index) {
+						final item = _categories[index];
+						return Container(
+							decoration: BoxDecoration(
+								color: theme.colorScheme.surface,
+								borderRadius: BorderRadius.circular(14),
+								border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+							),
+							padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+							child: Row(
+								children: [
+									CircleAvatar(
+										backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
+										foregroundColor: theme.colorScheme.primary,
+										child: Icon(item.icon),
+									),
+									const SizedBox(width: 10),
+									Expanded(
+										child: Text(
+											item.label,
+											maxLines: 1,
+											overflow: TextOverflow.ellipsis,
+											style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+										),
+									),
+								],
+							),
+						);
+					},
+				),
+			),
+		);
+	}
+
+	Widget _buildProducts(HomeViewModel viewModel, ThemeData theme) {
+		if (viewModel.isLoading) {
+			return SliverFillRemaining(
+				hasScrollBody: false,
+				child: Center(
+					child: CircularProgressIndicator(color: theme.colorScheme.primary),
+				),
+			);
+		}
+
+		if (viewModel.error != null) {
+			return SliverFillRemaining(
+				hasScrollBody: false,
+				child: Column(
+					mainAxisAlignment: MainAxisAlignment.center,
+					children: [
+						const Text('Failed to load data'),
+						const SizedBox(height: 8),
+						ElevatedButton(
+							onPressed: viewModel.loadInitial,
+							child: const Text('Try again'),
+						),
+					],
+				),
+			);
+		}
+
+		final products = viewModel.products;
+		if (products.isEmpty) {
+			return SliverFillRemaining(
+				hasScrollBody: false,
+				child: Column(
+					mainAxisAlignment: MainAxisAlignment.center,
+					children: const [
+						Icon(Icons.search_off, size: 48),
+						SizedBox(height: 10),
+						Text('No products found'),
+					],
+				),
+			);
+		}
+
+		return SliverPadding(
+			padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+			sliver: SliverGrid(
+				gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+					crossAxisCount: 2,
+					mainAxisSpacing: 12,
+					crossAxisSpacing: 12,
+					childAspectRatio: 0.68,
+				),
+				delegate: SliverChildBuilderDelegate(
+					(context, index) {
+						final product = products[index];
+						return ProductCard(
+							product: product,
+							onAddToCart: () => context.read<CartProvider>().addToCart(product),
+							onTap: () {},
+						);
+					},
+					childCount: products.length,
+				),
+			),
+		);
+	}
+
+	Widget _buildLoadMoreIndicator(HomeViewModel viewModel, ThemeData theme) {
+		if (!viewModel.isLoadingMore) {
+			return const SizedBox.shrink();
+		}
+		return Padding(
+			padding: const EdgeInsets.symmetric(vertical: 12),
+			child: Center(
+				child: CircularProgressIndicator(color: theme.colorScheme.primary),
+			),
+		);
+	}
+}
+
+class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
+	_SearchBarDelegate({
+		required this.minExtent,
+		required this.maxExtent,
+		required this.controller,
+		required this.onChanged,
+	}) : assert(maxExtent >= minExtent);
+
+	@override
+	final double minExtent;
+	@override
+	final double maxExtent;
+	final TextEditingController controller;
+	final ValueChanged<String> onChanged;
+
+	@override
+	Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+		final theme = Theme.of(context);
+		final height = (maxExtent - shrinkOffset).clamp(minExtent, maxExtent);
+		return Container(
+			color: theme.scaffoldBackgroundColor,
+			height: height,
+			padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+			child: DecoratedBox(
+				decoration: BoxDecoration(
+					color: theme.colorScheme.surface,
+					borderRadius: BorderRadius.circular(16),
+					boxShadow: [
+						BoxShadow(
+							color: Colors.black.withOpacity(0.05),
+							blurRadius: 8,
+							offset: const Offset(0, 2),
+						),
+					],
+				),
+				child: TextField(
+					controller: controller,
+					onChanged: onChanged,
+					decoration: const InputDecoration(
+						hintText: 'Search products',
+						prefixIcon: Icon(Icons.search),
+						border: InputBorder.none,
+						contentPadding: EdgeInsets.symmetric(vertical: 14),
+					),
+				),
+			),
+		);
+	}
+
+	@override
+	bool shouldRebuild(covariant _SearchBarDelegate oldDelegate) {
+		return controller != oldDelegate.controller ||
+				minExtent != oldDelegate.minExtent ||
+				maxExtent != oldDelegate.maxExtent ||
+				onChanged != oldDelegate.onChanged;
+	}
+}
+
+class _CategoryItem {
+	const _CategoryItem({required this.icon, required this.label});
+
+	final IconData icon;
+	final String label;
+}
