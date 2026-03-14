@@ -18,10 +18,10 @@ class _HomeScreenState extends State<HomeScreen> {
 	final TextEditingController _searchController = TextEditingController();
 	bool _initialized = false;
 	final List<String> _banners = const [
-		'https://images.unsplash.com/photo-1512436991641-6745cdb1723f',
-		'https://images.unsplash.com/photo-1523275335684-37898b6baf30',
-		'https://images.unsplash.com/photo-1542293787938-4d273c5ba81c',
-		'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3',
+		'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=800&q=80',
+		'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
+		'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&q=80',
+		'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80',
 	];
 
 	final List<_CategoryItem> _categories = const [
@@ -319,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
 						return ProductCard(
 							product: product,
 							onAddToCart: () => context.read<CartProvider>().addToCart(product),
-							onTap: () {},
+							// onTap không truyền → ProductCard tự navigate sang ProductDetailScreen
 						);
 					},
 					childCount: products.length,

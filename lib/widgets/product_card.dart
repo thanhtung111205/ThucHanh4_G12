@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/product.dart';
+import '../screens/product/product_detail_screen.dart';
 
 class ProductCard extends StatelessWidget {
 	const ProductCard({
@@ -19,7 +20,14 @@ class ProductCard extends StatelessWidget {
 		final theme = Theme.of(context);
 
 		return InkWell(
-			onTap: onTap,
+			onTap: onTap ?? () {
+				Navigator.push<void>(
+					context,
+					MaterialPageRoute(
+						builder: (_) => ProductDetailScreen(product: product),
+					),
+				);
+			},
 			borderRadius: BorderRadius.circular(16),
 			child: Card(
 				shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -34,12 +42,15 @@ class ProductCard extends StatelessWidget {
 									borderRadius: BorderRadius.circular(12),
 									child: AspectRatio(
 										aspectRatio: 1,
-										child: Container(
-											color: theme.colorScheme.surfaceVariant,
-											child: Image.network(
-												product.image,
-												fit: BoxFit.contain,
-												errorBuilder: (context, _, __) => const Icon(Icons.image_not_supported),
+										child: Hero(
+											tag: 'product-image-${product.id}',
+											child: Container(
+												color: theme.colorScheme.surfaceVariant,
+												child: Image.network(
+													product.image,
+													fit: BoxFit.contain,
+													errorBuilder: (context, _, __) => const Icon(Icons.image_not_supported),
+												),
 											),
 										),
 									),
