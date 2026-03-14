@@ -212,51 +212,72 @@ class _HomeScreenState extends State<HomeScreen> {
 		);
 	}
 
+	Widget _buildCategoryChip(_CategoryItem item, ThemeData theme) {
+		return Container(
+			decoration: BoxDecoration(
+				color: theme.colorScheme.surface,
+				borderRadius: BorderRadius.circular(14),
+				border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+			),
+			padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+			child: Row(
+				mainAxisSize: MainAxisSize.min,
+				children: [
+					CircleAvatar(
+						radius: 16,
+						backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
+						foregroundColor: theme.colorScheme.primary,
+						child: Icon(item.icon, size: 18),
+					),
+					const SizedBox(width: 8),
+					Text(
+						item.label,
+						style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+					),
+				],
+			),
+		);
+	}
+
 	Widget _buildCategories(ThemeData theme) {
+		// Split into 2 rows: even indices → row1, odd indices → row2
+		final List<_CategoryItem> row1 = [];
+		final List<_CategoryItem> row2 = [];
+		for (int i = 0; i < _categories.length; i++) {
+			if (i.isEven) {
+				row1.add(_categories[i]);
+			} else {
+				row2.add(_categories[i]);
+			}
+		}
+
 		return Padding(
 			padding: const EdgeInsets.symmetric(vertical: 12),
-			child: SizedBox(
-				height: 140,
-				child: GridView.builder(
-					padding: const EdgeInsets.symmetric(horizontal: 16),
-					physics: const BouncingScrollPhysics(),
-					scrollDirection: Axis.horizontal,
-					gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-						crossAxisCount: 2,
-						mainAxisSpacing: 12,
-						crossAxisSpacing: 12,
-						childAspectRatio: 1.9,
-					),
-					itemCount: _categories.length,
-					itemBuilder: (_, index) {
-						final item = _categories[index];
-						return Container(
-							decoration: BoxDecoration(
-								color: theme.colorScheme.surface,
-								borderRadius: BorderRadius.circular(14),
-								border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
-							),
-							padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-							child: Row(
-								children: [
-									CircleAvatar(
-										backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
-										foregroundColor: theme.colorScheme.primary,
-										child: Icon(item.icon),
-									),
-									const SizedBox(width: 10),
-									Expanded(
-										child: Text(
-											item.label,
-											maxLines: 1,
-											overflow: TextOverflow.ellipsis,
-											style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-										),
-									),
-								],
-							),
-						);
-					},
+			child: SingleChildScrollView(
+				scrollDirection: Axis.horizontal,
+				padding: const EdgeInsets.symmetric(horizontal: 16),
+				physics: const BouncingScrollPhysics(),
+				child: Column(
+					crossAxisAlignment: CrossAxisAlignment.start,
+					children: [
+						Row(
+							children: row1
+									.map((item) => Padding(
+												padding: const EdgeInsets.only(right: 10),
+												child: _buildCategoryChip(item, theme),
+											))
+									.toList(),
+						),
+						const SizedBox(height: 10),
+						Row(
+							children: row2
+									.map((item) => Padding(
+												padding: const EdgeInsets.only(right: 10),
+												child: _buildCategoryChip(item, theme),
+											))
+									.toList(),
+						),
+					],
 				),
 			),
 		);
