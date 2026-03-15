@@ -1,2 +1,7 @@
-// utils/formatter.dart
-// Placeholder for formatting utilities (currency, dates, etc.)
+class Formatter {
+  const Formatter._();
+
+  static String formatUsd(double value) {
+    return '\$${value.toStringAsFixed(2)}';
+  }
+}

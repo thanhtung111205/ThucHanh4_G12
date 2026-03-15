@@ -25,7 +25,7 @@ void showProductBottomSheet(BuildContext context, Product product) {
 
   showModalBottomSheet<void>(
     context: context,
-    isScrollControlled: true,        // Cho phép sheet cao hơn 50% màn hình
+    isScrollControlled: true, // Cho phép sheet cao hơn 50% màn hình
     backgroundColor: Colors.transparent,
     builder: (_) {
       // Dùng MultiProvider để sheet truy cập ViewModel và CartProvider
@@ -37,7 +37,7 @@ void showProductBottomSheet(BuildContext context, Product product) {
         child: _ProductDetailBottomSheet(
           product: product,
           onConfirm: (size, color, qty) {
-            cart.addToCart(product, quantity: qty);
+            cart.addToCart(product, quantity: qty, size: size, color: color);
             messenger.clearSnackBars();
             messenger.showSnackBar(
               SnackBar(
@@ -50,7 +50,9 @@ void showProductBottomSheet(BuildContext context, Product product) {
                 ),
                 backgroundColor: Colors.green.shade600,
                 behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 margin: const EdgeInsets.all(16),
                 duration: const Duration(seconds: 2),
               ),
@@ -137,8 +139,9 @@ class _ProductDetailBottomSheetState extends State<_ProductDetailBottomSheet> {
                   widget.product.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               IconButton(
@@ -158,9 +161,12 @@ class _ProductDetailBottomSheetState extends State<_ProductDetailBottomSheet> {
           const Divider(height: 24),
 
           // ── Chọn kích cỡ ────────────────────────────────────────
-          Text('Kích cỡ',
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Kích cỡ',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 10,
@@ -189,9 +195,12 @@ class _ProductDetailBottomSheetState extends State<_ProductDetailBottomSheet> {
           const SizedBox(height: 16),
 
           // ── Chọn màu sắc ────────────────────────────────────────
-          Text('Màu sắc',
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Màu sắc',
+            style: theme.textTheme.labelLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 10),
           Wrap(
             spacing: 12,
@@ -242,9 +251,12 @@ class _ProductDetailBottomSheetState extends State<_ProductDetailBottomSheet> {
           // ── Số lượng ────────────────────────────────────────────
           Row(
             children: [
-              Text('Số lượng',
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Số lượng',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const Spacer(),
               _QuantityButton(
                 icon: Icons.remove,
@@ -257,8 +269,9 @@ class _ProductDetailBottomSheetState extends State<_ProductDetailBottomSheet> {
                 alignment: Alignment.center,
                 child: Text(
                   '$_quantity',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               _QuantityButton(
