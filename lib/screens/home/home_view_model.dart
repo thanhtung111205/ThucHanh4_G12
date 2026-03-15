@@ -19,14 +19,21 @@ class HomeViewModel extends ChangeNotifier {
   double _scrollOffset = 0;
   int _currentBanner = 0;
   String _searchQuery = '';
+  String? _selectedCategory;
   String? _error;
 
+  String? get selectedCategory => _selectedCategory;
+
+  List<Product> get _filteredAll {
+    if (_selectedCategory == null) return _allProducts;
+    return _allProducts.where((p) => p.category == _selectedCategory).toList();
+  }
+
   List<Product> get products {
-    if (_searchQuery.isEmpty) {
-      return _visibleProducts;
-    }
+    var list = _selectedCategory == null ? _visibleProducts : _filteredAll;
+    if (_searchQuery.isEmpty) return list;
     final query = _searchQuery.toLowerCase();
-    return _visibleProducts
+    return list
         .where((p) => p.title.toLowerCase().contains(query) || p.category.toLowerCase().contains(query))
         .toList();
   }
@@ -86,6 +93,8 @@ class HomeViewModel extends ChangeNotifier {
 
   Future<void> loadMore() async {
     if (_isLoadingMore || !_hasMore || _isLoading || _allProducts.isEmpty) return;
+    // Khi có category filter, dùng _filteredAll để phân trang đúng
+    if (_selectedCategory != null) return; // filtered list dùng toàn bộ
     _isLoadingMore = true;
     notifyListeners();
 
@@ -115,6 +124,17 @@ class HomeViewModel extends ChangeNotifier {
 
   void updateSearchQuery(String value) {
     _searchQuery = value.trim();
+    notifyListeners();
+  }
+
+  void selectCategory(String? category) {
+    // Toggle: nếu bấm lại cùng category thì bỏ chọn (về tất cả)
+    _selectedCategory = (_selectedCategory == category) ? null : category;
+    // Reset pagination về trang 1 theo filter mới
+    _page = 1;
+    final source = _filteredAll;
+    _visibleProducts = source.take(_pageSize).toList();
+    _hasMore = _visibleProducts.length < source.length;
     notifyListeners();
   }
 }
