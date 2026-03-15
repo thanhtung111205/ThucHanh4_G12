@@ -25,14 +25,14 @@ class _HomeScreenState extends State<HomeScreen> {
 	];
 
 	final List<_CategoryItem> _categories = const [
-		_CategoryItem(icon: Icons.checkroom, label: 'Fashion'),
-		_CategoryItem(icon: Icons.phone_android, label: 'Phones'),
-		_CategoryItem(icon: Icons.brush, label: 'Beauty'),
-		_CategoryItem(icon: Icons.weekend, label: 'Furniture'),
-		_CategoryItem(icon: Icons.sports_soccer, label: 'Sports'),
-		_CategoryItem(icon: Icons.toys, label: 'Toys'),
-		_CategoryItem(icon: Icons.diamond, label: 'Jewelry'),
-		_CategoryItem(icon: Icons.local_grocery_store, label: 'Groceries'),
+		_CategoryItem(icon: Icons.checkroom,           label: 'Fashion',   apiCategory: "men's clothing"),
+		_CategoryItem(icon: Icons.phone_android,        label: 'Phones',    apiCategory: 'electronics'),
+		_CategoryItem(icon: Icons.face_retouching_natural, label: 'Beauty', apiCategory: "women's clothing"),
+		_CategoryItem(icon: Icons.weekend,              label: 'Furniture', apiCategory: null),
+		_CategoryItem(icon: Icons.sports_soccer,        label: 'Sports',    apiCategory: null),
+		_CategoryItem(icon: Icons.toys,                 label: 'Toys',      apiCategory: null),
+		_CategoryItem(icon: Icons.diamond,              label: 'Jewelry',   apiCategory: 'jewelery'),
+		_CategoryItem(icon: Icons.local_grocery_store,  label: 'Groceries', apiCategory: null),
 	];
 
 	@override
@@ -212,42 +212,124 @@ class _HomeScreenState extends State<HomeScreen> {
 		);
 	}
 
-	Widget _buildCategoryChip(_CategoryItem item, ThemeData theme) {
-		return Container(
-			decoration: BoxDecoration(
-				color: theme.colorScheme.surface,
-				borderRadius: BorderRadius.circular(14),
-				border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
-			),
-			padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-			child: Row(
-				mainAxisSize: MainAxisSize.min,
-				children: [
-					CircleAvatar(
-						radius: 16,
-						backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
-						foregroundColor: theme.colorScheme.primary,
-						child: Icon(item.icon, size: 18),
+	Widget _buildCategoryChip(_CategoryItem item, ThemeData theme, {required bool isSelected, required VoidCallback onTap}) {
+		return GestureDetector(
+			onTap: onTap,
+			child: AnimatedContainer(
+				duration: const Duration(milliseconds: 200),
+				decoration: BoxDecoration(
+					color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surface,
+					borderRadius: BorderRadius.circular(14),
+					border: Border.all(
+						color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.2),
+						width: isSelected ? 1.5 : 1,
 					),
-					const SizedBox(width: 8),
-					Text(
-						item.label,
-						style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-					),
-				],
+					boxShadow: isSelected
+							? [
+									BoxShadow(
+										color: theme.colorScheme.primary.withOpacity(0.25),
+										blurRadius: 8,
+										offset: const Offset(0, 2),
+									),
+								]
+							: null,
+				),
+				padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+				child: Row(
+					mainAxisSize: MainAxisSize.min,
+					children: [
+						CircleAvatar(
+							radius: 16,
+							backgroundColor: isSelected
+									? Colors.white.withOpacity(0.25)
+									: theme.colorScheme.primary.withOpacity(0.12),
+							foregroundColor: isSelected ? Colors.white : theme.colorScheme.primary,
+							child: Icon(item.icon, size: 18),
+						),
+						const SizedBox(width: 8),
+						Text(
+							item.label,
+							style: theme.textTheme.bodyMedium?.copyWith(
+								fontWeight: FontWeight.w600,
+								color: isSelected ? Colors.white : null,
+							),
+						),
+					],
+				),
 			),
 		);
 	}
 
 	Widget _buildCategories(ThemeData theme) {
-		// Split into 2 rows: even indices → row1, odd indices → row2
-		final List<_CategoryItem> row1 = [];
-		final List<_CategoryItem> row2 = [];
-		for (int i = 0; i < _categories.length; i++) {
+		final viewModel = context.read<HomeViewModel>();
+		final selected = context.watch<HomeViewModel>().selectedCategory;
+
+		// All chip
+		Widget allChip = GestureDetector(
+			onTap: () => viewModel.selectCategory(null),
+			child: AnimatedContainer(
+				duration: const Duration(milliseconds: 200),
+				decoration: BoxDecoration(
+					color: selected == null ? theme.colorScheme.primary : theme.colorScheme.surface,
+					borderRadius: BorderRadius.circular(14),
+					border: Border.all(
+						color: selected == null ? theme.colorScheme.primary : theme.colorScheme.outline.withOpacity(0.2),
+						width: selected == null ? 1.5 : 1,
+					),
+					boxShadow: selected == null
+							? [
+									BoxShadow(
+										color: theme.colorScheme.primary.withOpacity(0.25),
+										blurRadius: 8,
+										offset: const Offset(0, 2),
+									),
+								]
+							: null,
+				),
+				padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+				child: Row(
+					mainAxisSize: MainAxisSize.min,
+					children: [
+						CircleAvatar(
+							radius: 16,
+							backgroundColor: selected == null ? Colors.white.withOpacity(0.25) : theme.colorScheme.primary.withOpacity(0.12),
+							foregroundColor: selected == null ? Colors.white : theme.colorScheme.primary,
+							child: const Icon(Icons.apps, size: 18),
+						),
+						const SizedBox(width: 8),
+						Text(
+							'All',
+							style: theme.textTheme.bodyMedium?.copyWith(
+								fontWeight: FontWeight.w600,
+								color: selected == null ? Colors.white : null,
+							),
+						),
+					],
+				),
+			),
+		);
+
+		// Build list including "All" chip at front
+		final allItems = [null, ..._categories]; // null = All
+		final List<Widget> row1Chips = [];
+		final List<Widget> row2Chips = [];
+		for (int i = 0; i < allItems.length; i++) {
+			final item = allItems[i];
+			final Widget chip = item == null
+					? Padding(padding: const EdgeInsets.only(right: 10), child: allChip)
+					: Padding(
+							padding: const EdgeInsets.only(right: 10),
+							child: _buildCategoryChip(
+								item,
+								theme,
+								isSelected: selected != null && item.apiCategory == selected,
+								onTap: () => viewModel.selectCategory(item.apiCategory),
+							),
+						);
 			if (i.isEven) {
-				row1.add(_categories[i]);
+				row1Chips.add(chip);
 			} else {
-				row2.add(_categories[i]);
+				row2Chips.add(chip);
 			}
 		}
 
@@ -260,23 +342,9 @@ class _HomeScreenState extends State<HomeScreen> {
 				child: Column(
 					crossAxisAlignment: CrossAxisAlignment.start,
 					children: [
-						Row(
-							children: row1
-									.map((item) => Padding(
-												padding: const EdgeInsets.only(right: 10),
-												child: _buildCategoryChip(item, theme),
-											))
-									.toList(),
-						),
+						Row(children: row1Chips),
 						const SizedBox(height: 10),
-						Row(
-							children: row2
-									.map((item) => Padding(
-												padding: const EdgeInsets.only(right: 10),
-												child: _buildCategoryChip(item, theme),
-											))
-									.toList(),
-						),
+						Row(children: row2Chips),
 					],
 				),
 			),
@@ -421,8 +489,10 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _CategoryItem {
-	const _CategoryItem({required this.icon, required this.label});
+	const _CategoryItem({required this.icon, required this.label, this.apiCategory});
 
 	final IconData icon;
 	final String label;
+	/// Khớp với trường category trong FakeStore API (null = không lọc được)
+	final String? apiCategory;
 }
