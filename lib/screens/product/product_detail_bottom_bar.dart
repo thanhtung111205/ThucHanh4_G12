@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/cart_provider.dart';
+import '../cart/cart_screen.dart';
 
 class ProductDetailBottomBar extends StatelessWidget {
   const ProductDetailBottomBar({
@@ -62,7 +63,12 @@ class ProductDetailBottomBar extends StatelessWidget {
                       icon: Icons.shopping_bag_outlined,
                       label: 'Giỏ hàng',
                       badgeCount: cart.totalQuantity,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CartScreen()),
+                        );
+                      },
                     ),
                   ),
                 ],
