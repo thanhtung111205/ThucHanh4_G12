@@ -1,11 +1,11 @@
 import 'package:badges/badges.dart' as badges;
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/cart_provider.dart';
 import '../cart/cart_screen.dart';
 import '../../widgets/product_card.dart';
+import '../../widgets/banner_slider.dart';
 import 'home_view_model.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -135,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: color,
       elevation: viewModel.appBarOpacity > 0.6 ? 2 : 0,
       foregroundColor: foreground,
-      title: const Text('TH4 - Nhóm 4'),
+      title: const Text('TH4 - Nhóm 12'),
       actions: [
         Consumer<CartProvider>(
           builder: (_, cart, __) {
@@ -203,63 +203,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCarousel(HomeViewModel viewModel, ThemeData theme) {
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        CarouselSlider.builder(
-          itemCount: _banners.length,
-          itemBuilder: (_, index, __) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.network(_banners[index], fit: BoxFit.cover),
-                    Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.black54, Colors.transparent],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-          options: CarouselOptions(
-            height: 180,
-            autoPlay: true,
-            viewportFraction: 0.9,
-            enlargeCenterPage: true,
-            onPageChanged: (index, _) => viewModel.updateBannerIndex(index),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_banners.length, (index) {
-            final isActive = index == viewModel.currentBanner;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              height: 8,
-              width: isActive ? 22 : 8,
-              decoration: BoxDecoration(
-                color: isActive
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.onSurface.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-            );
-          }),
-        ),
-        const SizedBox(height: 4),
-      ],
+    return BannerSlider(
+      banners: _banners,
+      currentIndex: viewModel.currentBanner,
+      onPageChanged: viewModel.updateBannerIndex,
     );
   }
 
