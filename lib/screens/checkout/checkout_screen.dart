@@ -16,13 +16,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   late String _selectedAddress;
   late String _selectedPayment;
   late TextEditingController _customAddressController;
-  bool _useCustomAddress = false;
-
-  final List<String> _addresses = [
-    '123 Đường Lê Lợi, Q.1, TP.HCM',
-    '456 Đường Nguyễn Huệ, Q.1, TP.HCM',
-    '789 Đường Trần Hưng Đạo, Q.5, TP.HCM',
-  ];
+  bool _useCustomAddress = true; // Set to true by default to focus on new address entry
 
   final List<Map<String, String>> _paymentMethods = [
     {'id': 'cod', 'name': 'COD (Thanh toán khi nhận)', 'icon': '💰'},
@@ -32,7 +26,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedAddress = _addresses[0];
+    _selectedAddress = '';
     _selectedPayment = 'cod';
     _customAddressController = TextEditingController();
   }
@@ -48,10 +42,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     List<CartItem> selectedItems,
     double total,
   ) {
-    final finalAddress =
-        _useCustomAddress && _customAddressController.text.isNotEmpty
-        ? _customAddressController.text
-        : _selectedAddress;
+    final finalAddress = _customAddressController.text.trim();
+    
+    if (finalAddress.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập địa chỉ nhận hàng')),
+      );
+      return;
+    }
 
     Navigator.push(
       context,
@@ -177,13 +175,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        '${item.product.price.toStringAsFixed(2)}đ x ${item.quantity}',
+                                        '\$${item.product.price.toStringAsFixed(2)} x ${item.quantity}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                       Text(
-                                        '${item.lineTotal.toStringAsFixed(2)}đ',
+                                        '\$${item.lineTotal.toStringAsFixed(2)}',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.red,
@@ -204,117 +202,42 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
                 // Delivery Address Section
                 Text(
-                  'Địa chỉ giao hàng',
+                  'Địa chỉ nhận hàng',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 12),
                 Container(
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[300]!),
                     borderRadius: BorderRadius.circular(8),
+                    color: Colors.white,
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ..._addresses.map((address) {
-                        final isSelected =
-                            !_useCustomAddress && address == _selectedAddress;
-                        return InkWell(
-                          onTap: () {
-                            setState(() {
-                              _useCustomAddress = false;
-                              _selectedAddress = address;
-                              _customAddressController.clear();
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.blue.withOpacity(0.1)
-                                  : Colors.transparent,
-                              border: isSelected
-                                  ? Border(
-                                      top: BorderSide(
-                                        color: Colors.blue,
-                                        width: 2,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                            child: Row(
-                              children: [
-                                Radio<String>(
-                                  value: address,
-                                  groupValue: !_useCustomAddress
-                                      ? _selectedAddress
-                                      : '',
-                                  onChanged: (value) {
-                                    if (value != null) {
-                                      setState(() {
-                                        _useCustomAddress = false;
-                                        _selectedAddress = value;
-                                        _customAddressController.clear();
-                                      });
-                                    }
-                                  },
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(child: Text(address)),
-                              ],
-                            ),
+                      Row(
+                        children: const [
+                          Icon(Icons.location_on, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text(
+                            'Vui lòng nhập địa chỉ nhận hàng',
+                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                        );
-                      }).toList(),
-                      Divider(height: 1, color: Colors.grey[300]),
-                      InkWell(
-                        onTap: () {
-                          setState(() {
-                            _useCustomAddress = true;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: _useCustomAddress
-                                ? Colors.blue.withOpacity(0.1)
-                                : Colors.transparent,
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _customAddressController,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          hintText: 'Số nhà, tên đường, phường/xã, quận/huyện...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Radio<bool>(
-                                    value: true,
-                                    groupValue: _useCustomAddress,
-                                    onChanged: (value) {
-                                      if (value != null) {
-                                        setState(() {
-                                          _useCustomAddress = value;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text('Nhập địa chỉ khác'),
-                                ],
-                              ),
-                              if (_useCustomAddress) ...[
-                                const SizedBox(height: 12),
-                                TextField(
-                                  controller: _customAddressController,
-                                  maxLines: 2,
-                                  decoration: InputDecoration(
-                                    hintText: 'Nhập địa chỉ giao hàng của bạn',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    contentPadding: const EdgeInsets.all(12),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
+                          filled: true,
+                          fillColor: Colors.grey[50],
+                          contentPadding: const EdgeInsets.all(12),
                         ),
                       ),
                     ],
@@ -346,13 +269,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? Colors.blue.withOpacity(0.1)
+                                ? Colors.blue.withOpacity(0.05)
                                 : Colors.transparent,
                             border: isSelected
                                 ? Border(
-                                    top: BorderSide(
+                                    left: BorderSide(
                                       color: Colors.blue,
-                                      width: 2,
+                                      width: 4,
                                     ),
                                   )
                                 : null,
@@ -362,6 +285,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               Radio<String>(
                                 value: method['id']!,
                                 groupValue: _selectedPayment,
+                                activeColor: Colors.blue,
                                 onChanged: (value) {
                                   if (value != null) {
                                     setState(() {
@@ -376,7 +300,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 style: const TextStyle(fontSize: 24),
                               ),
                               const SizedBox(width: 12),
-                              Expanded(child: Text(method['name']!)),
+                              Expanded(
+                                child: Text(
+                                  method['name']!,
+                                  style: TextStyle(
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -406,14 +337,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(height: 12),
                       _buildSummaryRow(
                         'Tổng giá trị:',
-                        '${total.toStringAsFixed(2)}đ',
+                        '\$${total.toStringAsFixed(2)}',
                       ),
                       const SizedBox(height: 8),
                       _buildSummaryRow('Phí vận chuyển:', 'Miễn phí'),
                       const Divider(height: 16),
                       _buildSummaryRow(
                         'Thành tiền:',
-                        '${total.toStringAsFixed(2)}đ',
+                        '\$${total.toStringAsFixed(2)}',
                         isBold: true,
                       ),
                     ],
@@ -431,10 +362,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     icon: const Icon(Icons.check_circle),
                     label: const Text(
                       'Đặt Hàng',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: Colors.blue[700],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
@@ -449,9 +385,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     label: const Text('Quay lại giỏ hàng'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           );
@@ -475,7 +415,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: isBold ? Colors.red : Colors.black,
-            fontSize: isBold ? 16 : 14,
+            fontSize: isBold ? 18 : 14,
           ),
         ),
       ],

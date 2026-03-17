@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/cart_item.dart';
+import '../../models/order.dart';
 import '../../providers/cart_provider.dart';
+import '../../services/order_service.dart';
 import '../home/home_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -35,6 +37,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
+
+    // Create a new order object
+    final newOrder = Order(
+      id: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
+      items: List.from(widget.selectedItems),
+      totalPrice: widget.totalAmount,
+      status: OrderStatus.pending,
+      orderDate: DateTime.now(),
+      address: widget.selectedAddress,
+      paymentMethod: widget.selectedPayment,
+    );
+
+    // Save the order to OrderService
+    await OrderService.addOrder(newOrder);
 
     // Remove items from cart
     final cartProvider = Provider.of<CartProvider>(context, listen: false);

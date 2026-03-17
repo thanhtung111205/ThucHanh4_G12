@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/cart_provider.dart';
 import '../cart/cart_screen.dart';
+import '../order_history/order_history_screen.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/banner_slider.dart';
 import 'home_view_model.dart';
@@ -137,6 +138,16 @@ class _HomeScreenState extends State<HomeScreen> {
       foregroundColor: foreground,
       title: const Text('TH4 - Nhóm 12'),
       actions: [
+        IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OrderHistoryScreen()),
+            );
+          },
+          icon: const Icon(Icons.history),
+          tooltip: 'Lịch sử mua hàng',
+        ),
         Consumer<CartProvider>(
           builder: (_, cart, __) {
             return IconButton(
@@ -326,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    // Build list including "All" chip at front
+    // Build list including \"All\" chip at front
     final allItems = [null, ..._categories]; // null = All
     final List<Widget> row1Chips = [];
     final List<Widget> row2Chips = [];
