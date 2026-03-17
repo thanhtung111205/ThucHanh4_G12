@@ -4,10 +4,14 @@ import 'package:provider/provider.dart';
 import 'providers/cart_provider.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/home/home_view_model.dart';
+import 'services/order_service.dart';
 
 const Color _primaryColor = Color(0xFF1565C0);
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Khởi tạo dữ liệu đơn hàng từ SharedPreferences
+  await OrderService.loadOrders();
   runApp(const MyApp());
 }
 

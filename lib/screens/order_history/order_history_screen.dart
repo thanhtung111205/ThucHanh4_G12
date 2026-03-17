@@ -11,14 +11,12 @@ class OrderHistoryScreen extends StatefulWidget {
 }
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
-  // Function to refresh the UI when an order is cancelled
   void _handleUpdate() {
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get all orders from Service
     final List<Order> allOrders = OrderService.getOrders();
 
     return DefaultTabController(
@@ -27,14 +25,15 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         appBar: AppBar(
           title: const Text('Đơn mua', style: TextStyle(fontWeight: FontWeight.bold)),
           centerTitle: true,
-          bottom: const TabBar(
-            isScrollable: true,
+          bottom: TabBar(
+            isScrollable: false, // Set to false and use expanded tabs to center
             labelColor: Colors.blue,
             unselectedLabelColor: Colors.grey,
             indicatorColor: Colors.blue,
+            labelPadding: EdgeInsets.zero, // Remove default padding
             tabs: [
-              Tab(text: 'Chờ xác nhận'),
-              Tab(text: 'Đang giao'),
+              _buildTab('Chờ xác nhận', OrderStatus.pending, allOrders),
+              _buildTab('Đang giao', OrderStatus.shipping, allOrders),
               Tab(text: 'Đã giao'),
               Tab(text: 'Đã hủy'),
             ],
@@ -48,6 +47,32 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
             OrderListWidget(orders: allOrders, status: OrderStatus.cancelled, onUpdate: _handleUpdate),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTab(String label, OrderStatus status, List<Order> allOrders) {
+    final count = allOrders.where((o) => o.status == status).length;
+    return Tab(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 12)),
+          if (count > 0) ...[
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                count.toString(),
+                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -187,7 +212,6 @@ class OrderItemWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 _buildInfoRow(Icons.payment, 'Thanh toán:', order.paymentMethod == 'cod' ? 'Tiền mặt (COD)' : 'Ví điện tử'),
                 
-                // Add Cancel Button if status is Pending
                 if (order.status == OrderStatus.pending) ...[
                   const Divider(height: 32),
                   SizedBox(
@@ -223,9 +247,9 @@ class OrderItemWidget extends StatelessWidget {
             child: const Text('Quay lại'),
           ),
           TextButton(
-            onPressed: () {
-              OrderService.cancelOrder(order.id);
-              onUpdate(); // Refresh the UI
+            onPressed: () async {
+              await OrderService.cancelOrder(order.id);
+              onUpdate();
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Đã hủy đơn hàng thành công')),

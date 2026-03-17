@@ -1,16 +1,35 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/order.dart';
 
 class OrderService extends ChangeNotifier {
-  // Static list to store orders in memory
   static final List<Order> _orders = [];
+  static const String _storageKey = 'orders_history';
 
   static List<Order> get orders => _orders;
 
+  // Load orders from SharedPreferences
+  static Future<void> loadOrders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? ordersJson = prefs.getString(_storageKey);
+    if (ordersJson != null) {
+      final List<dynamic> decoded = jsonDecode(ordersJson);
+      _orders.clear();
+      _orders.addAll(decoded.map((item) => Order.fromJson(item)).toList());
+    }
+  }
+
+  // Save orders to SharedPreferences
+  static Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_orders.map((o) => o.toJson()).toList());
+    await prefs.setString(_storageKey, encoded);
+  }
+
   static Future<void> addOrder(Order order) async {
-    // Simulate some delay
-    await Future.delayed(const Duration(milliseconds: 300));
-    _orders.insert(0, order); // Add new order to the top
+    _orders.insert(0, order);
+    await _saveToPrefs();
   }
 
   static List<Order> getOrders() {
@@ -21,12 +40,10 @@ class OrderService extends ChangeNotifier {
     return _orders.where((order) => order.status == status).toList();
   }
 
-  // New function to cancel an order
-  static void cancelOrder(String orderId) {
+  static Future<void> cancelOrder(String orderId) async {
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index != -1 && _orders[index].status == OrderStatus.pending) {
-      // Create a new order object with cancelled status
-      final cancelledOrder = Order(
+      _orders[index] = Order(
         id: _orders[index].id,
         items: _orders[index].items,
         totalPrice: _orders[index].totalPrice,
@@ -35,9 +52,7 @@ class OrderService extends ChangeNotifier {
         address: _orders[index].address,
         paymentMethod: _orders[index].paymentMethod,
       );
-      
-      // Update the list
-      _orders[index] = cancelledOrder;
+      await _saveToPrefs();
     }
   }
 }

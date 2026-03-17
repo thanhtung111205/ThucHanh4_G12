@@ -47,4 +47,28 @@ class Order {
         return Colors.red;
     }
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'items': items.map((i) => i.toJson()).toList(),
+      'totalPrice': totalPrice,
+      'status': status.index,
+      'orderDate': orderDate.toIso8601String(),
+      'address': address,
+      'paymentMethod': paymentMethod,
+    };
+  }
+
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'],
+      items: (json['items'] as List).map((i) => CartItem.fromJson(i)).toList(),
+      totalPrice: json['totalPrice'],
+      status: OrderStatus.values[json['status']],
+      orderDate: DateTime.parse(json['orderDate']),
+      address: json['address'],
+      paymentMethod: json['paymentMethod'],
+    );
+  }
 }
