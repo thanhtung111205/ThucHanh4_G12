@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../utils/formatter.dart';
 import '../../widgets/cart_item_widget.dart';
+import '../checkout/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -144,12 +145,10 @@ class CartScreen extends StatelessWidget {
                   context.read<CartProvider>().toggleSelectAll(value ?? false);
                 },
                 onCheckout: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Đã sẵn sàng chuyển sang màn hình thanh toán',
-                      ),
-                      behavior: SnackBarBehavior.floating,
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CheckoutScreen(),
                     ),
                   );
                 },
