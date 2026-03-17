@@ -29,34 +29,34 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<_CategoryItem> _categories = const [
     _CategoryItem(
       icon: Icons.checkroom,
-      label: 'Fashion',
+      label: 'Thời trang',
       apiCategory: "men's clothing",
     ),
     _CategoryItem(
       icon: Icons.phone_android,
-      label: 'Phones',
+      label: 'Điện thoại',
       apiCategory: 'electronics',
     ),
     _CategoryItem(
       icon: Icons.face_retouching_natural,
-      label: 'Beauty',
+      label: 'Làm đẹp',
       apiCategory: "women's clothing",
     ),
-    _CategoryItem(icon: Icons.weekend, label: 'Furniture', apiCategory: null),
+    _CategoryItem(icon: Icons.weekend, label: 'Đồ nội thất', apiCategory: null),
     _CategoryItem(
       icon: Icons.sports_soccer,
-      label: 'Sports',
+      label: 'Thể thao',
       apiCategory: null,
     ),
-    _CategoryItem(icon: Icons.toys, label: 'Toys', apiCategory: null),
+    _CategoryItem(icon: Icons.toys, label: 'Đồ chơi', apiCategory: null),
     _CategoryItem(
       icon: Icons.diamond,
-      label: 'Jewelry',
+      label: 'Trang sức',
       apiCategory: 'jewelery',
     ),
     _CategoryItem(
       icon: Icons.local_grocery_store,
-      label: 'Groceries',
+      label: 'Thực phẩm',
       apiCategory: null,
     ),
   ];
@@ -190,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                'Hello, welcome back!',
+                'Xin chào, chào mừng trở lại!',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -199,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SizedBox(height: 8),
               Text(
-                'Find the best deals today.',
+                'Khám phá ưu đãi tốt nhất hôm nay.',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 22,
@@ -326,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              'All',
+              'Tất cả',
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: selected == null ? Colors.white : null,
@@ -395,11 +395,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Failed to load data'),
+            const Text('Không thể tải dữ liệu'),
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: viewModel.loadInitial,
-              child: const Text('Try again'),
+              child: const Text('Thử lại'),
             ),
           ],
         ),
@@ -415,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: const [
             Icon(Icons.search_off, size: 48),
             SizedBox(height: 10),
-            Text('No products found'),
+            Text('Không tìm thấy sản phẩm'),
           ],
         ),
       );
@@ -498,7 +498,7 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
           controller: controller,
           onChanged: onChanged,
           decoration: const InputDecoration(
-            hintText: 'Search products',
+            hintText: 'Tìm kiếm sản phẩm',
             prefixIcon: Icon(Icons.search),
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 14),

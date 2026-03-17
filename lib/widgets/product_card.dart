@@ -90,7 +90,7 @@ class ProductCard extends StatelessWidget {
 										),
 										onPressed: onAddToCart,
 										icon: const Icon(Icons.add_shopping_cart, size: 18),
-										label: const Text('Them'),
+										label: const Text('Thêm'),
 									),
 								],
 							),
